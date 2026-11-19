@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Map Creator</title>
+  <title>Radar Hrvatska</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
@@ -21,8 +21,8 @@
 <!-- Izbornik -->
 <aside id="panel">
   <header class="brand">
-    <span class="brand-top">Map</span>
-    <span class="brand-bottom">Creator</span>
+    <span class="brand-top">Hrvatska</span>
+    <span class="brand-bottom">Radar</span>
   </header>
 
   <nav class="menu">
@@ -36,7 +36,19 @@
 
   <div id="status" class="status">Uvećaj kartu do mjesta koje želiš, pa označi područje.</div>
 
-  <ul id="legend" class="legend" hidden></ul>
+</aside>
+
+<!-- Legenda (desno, može se sklopiti) -->
+<aside id="legend-panel" hidden>
+  <button id="legend-toggle" class="legend-header">
+    Legenda <span class="chevron">▾</span>
+  </button>
+  <div class="legend-body">
+    <div class="section-title">Mjesta</div>
+    <ul id="legend" class="legend"></ul>
+    <div class="section-title">Teren</div>
+    <ul id="terrain-legend" class="terrain-legend"></ul>
+  </div>
 </aside>
 
 <!-- Minimapa (radar) kao u igri -->

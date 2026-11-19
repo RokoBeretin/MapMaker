@@ -1,5 +1,5 @@
 import maplibregl from 'maplibre-gl';
-import type { GeoJSONSource, LngLat, LngLatLike, Map as MlMap, Marker, Popup } from 'maplibre-gl';
+import type { ExpressionSpecification, GeoJSONSource, LngLat, LngLatLike, Map as MlMap, Marker, Popup } from 'maplibre-gl';
 import type { Feature, FeatureCollection, Point, Polygon, Position } from 'geojson';
 import { VectorTile } from '@mapbox/vector-tile';
 import * as pbfModule from 'pbf';
@@ -18,11 +18,31 @@ const RADAR_ZOOM = 15.5;
 
 // ---------- Stilovi (teme) ----------
 // Vlastita imena umjesto imena igara - slobodno ih preimenuj u "label".
+// Boje terena
+type Terrain = {
+  forest: string; // šuma
+  grass: string; // travnjak, park
+  farmland: string; // polja
+  sand: string; // plaža, pijesak
+  rock: string; // kamenjar
+  wetland: string; // močvara
+  residential: string; // stambeno
+  industrial: string; // industrija
+  commercial: string; // trgovine, poslovno
+  cemetery: string; // groblje
+  institution: string; // bolnice, škole, fakulteti
+  sport: string; // stadioni, igrališta
+  military: string; // vojni prostor
+  airport: string; // aerodrom
+  runway: string; // pista
+  rail: string; // pruga
+};
+
 type Theme = {
   label: string;
   land: string;
   water: string;
-  green: string;
+  terrain: Terrain;
   building: string;
   shadow: number; // jačina sjene zgrada
   road: string;
@@ -40,7 +60,24 @@ const THEMES: Record<string, Theme> = {
     label: "Neon '86",
     land: '#d9c9a3',
     water: '#4fb4cc',
-    green: '#93b06e',
+    terrain: {
+      forest: '#6f9a58',
+      grass: '#9cc07a',
+      farmland: '#d4cf8f',
+      sand: '#f4e6b8',
+      rock: '#b8aa8c',
+      wetland: '#79b8a6',
+      residential: '#e2d4b0',
+      industrial: '#c9b3c4',
+      commercial: '#ecc8b0',
+      cemetery: '#a9b88e',
+      institution: '#f2c2cf',
+      sport: '#6fc45e',
+      military: '#d39b8f',
+      airport: '#cfc4b0',
+      runway: '#8f8678',
+      rail: '#9a7fa6',
+    },
     building: '#c3ae86',
     shadow: 0.25,
     road: '#f6f0e2',
@@ -56,7 +93,24 @@ const THEMES: Record<string, Theme> = {
     label: "Pustinja '92",
     land: '#958e73',
     water: '#2c4c84',
-    green: '#6c7c47',
+    terrain: {
+      forest: '#5c6d3c',
+      grass: '#7a8a52',
+      farmland: '#aaa16a',
+      sand: '#cbbd8e',
+      rock: '#8a8170',
+      wetland: '#5f7f6e',
+      residential: '#a09980',
+      industrial: '#857a6e',
+      commercial: '#a59276',
+      cemetery: '#7f8a63',
+      institution: '#a5897b',
+      sport: '#789150',
+      military: '#94705b',
+      airport: '#a39d89',
+      runway: '#6e6a5e',
+      rail: '#5e594e',
+    },
     building: '#7d7760',
     shadow: 0.35,
     road: '#d2ccb6',
@@ -72,7 +126,24 @@ const THEMES: Record<string, Theme> = {
     label: 'Moderna',
     land: '#2a2f33',
     water: '#3b5f80',
-    green: '#30513a',
+    terrain: {
+      forest: '#2a4a33',
+      grass: '#36583d',
+      farmland: '#3e4530',
+      sand: '#6e6548',
+      rock: '#4a4744',
+      wetland: '#2f4f4f',
+      residential: '#30363b',
+      industrial: '#3a3542',
+      commercial: '#3d3b33',
+      cemetery: '#34433a',
+      institution: '#3f3238',
+      sport: '#3f6b45',
+      military: '#4d3030',
+      airport: '#3a3f45',
+      runway: '#5c6268',
+      rail: '#70757a',
+    },
     building: '#3d4449',
     shadow: 0.45,
     road: '#9aa1a6',
@@ -88,7 +159,24 @@ const THEMES: Record<string, Theme> = {
     label: "Tropik '26",
     land: '#231c36',
     water: '#18a9c2',
-    green: '#2d6a55',
+    terrain: {
+      forest: '#1f5a48',
+      grass: '#2d6a55',
+      farmland: '#3a4a36',
+      sand: '#c9a46b',
+      rock: '#3f3a4a',
+      wetland: '#1e5a63',
+      residential: '#2a2240',
+      industrial: '#33264a',
+      commercial: '#3c2548',
+      cemetery: '#253a3c',
+      institution: '#432349',
+      sport: '#2f7a5c',
+      military: '#4a2236',
+      airport: '#2f2a45',
+      runway: '#504872',
+      rail: '#7a6aa8',
+    },
     building: '#3b2f57',
     shadow: 0.5,
     road: '#b9a7e0',
@@ -113,6 +201,88 @@ function loadSavedTheme(): string {
 
 let themeId = loadSavedTheme();
 const T = () => THEMES[themeId];
+
+// ---------- Teren ----------
+const TRANSPARENT = 'rgba(0,0,0,0)';
+
+// Namjena zemljišta (OpenMapTiles sloj "landuse")
+function landuseColor(t: Theme) {
+  const c = t.terrain;
+  return [
+    'match',
+    ['get', 'class'],
+    ['residential', 'suburb', 'neighbourhood', 'quarter'],
+    c.residential,
+    ['industrial', 'railway', 'garages', 'quarry', 'depot'],
+    c.industrial,
+    ['commercial', 'retail'],
+    c.commercial,
+    'cemetery',
+    c.cemetery,
+    ['hospital', 'school', 'university', 'college', 'kindergarten', 'library'],
+    c.institution,
+    ['stadium', 'pitch', 'playground', 'track', 'theme_park', 'zoo'],
+    c.sport,
+    'military',
+    c.military,
+    TRANSPARENT,
+  ] as unknown as ExpressionSpecification;
+}
+
+// Prirodni pokrov (OpenMapTiles sloj "landcover")
+function landcoverColor(t: Theme) {
+  const c = t.terrain;
+  return [
+    'match',
+    ['get', 'class'],
+    'wood',
+    c.forest,
+    'grass',
+    c.grass,
+    'farmland',
+    c.farmland,
+    'sand',
+    c.sand,
+    'rock',
+    c.rock,
+    'wetland',
+    c.wetland,
+    'ice',
+    '#e8f1f5',
+    TRANSPARENT,
+  ] as unknown as ExpressionSpecification;
+}
+
+function aerowayColor(t: Theme) {
+  return ['match', ['get', 'class'], 'runway', t.terrain.runway, t.terrain.airport] as unknown as ExpressionSpecification;
+}
+
+// Legenda terena (boje se mijenjaju sa stilom)
+const TERRAIN_LEGEND: [keyof Terrain, string][] = [
+  ['forest', 'Šuma'],
+  ['grass', 'Park, travnjak'],
+  ['farmland', 'Polja'],
+  ['sand', 'Plaža, pijesak'],
+  ['rock', 'Kamenjar'],
+  ['wetland', 'Močvara'],
+  ['residential', 'Stambeno'],
+  ['industrial', 'Industrija'],
+  ['commercial', 'Trgovine'],
+  ['cemetery', 'Groblje'],
+  ['institution', 'Bolnice, škole'],
+  ['sport', 'Sport'],
+  ['military', 'Vojska'],
+  ['airport', 'Aerodrom'],
+];
+
+function renderTerrainLegend() {
+  const el = document.querySelector<HTMLUListElement>('#terrain-legend');
+  if (!el) return;
+  el.innerHTML = TERRAIN_LEGEND.map(
+      ([key, label]) => `<li><span class="swatch" style="background:${T().terrain[key]}"></span>${label}</li>`,
+  ).join('');
+}
+
 
 // Vrste mjesta koje prikazujemo kao "blipove"
 const POI_TYPES = ['hospital', 'clinic', 'police', 'fire_station', 'fuel', 'pharmacy'];
@@ -295,23 +465,62 @@ function applyGtaBase(m: MlMap) {
 function addGtaLayers(m: MlMap) {
   const src = vectorSourceId(m);
 
+  // Namjena zemljišta: stambeno, industrija, groblja, škole...
+  m.addLayer({
+    id: 'gta-landuse',
+    type: 'fill',
+    source: src,
+    'source-layer': 'landuse',
+    paint: { 'fill-color': landuseColor(T()) },
+  });
+
+  // Prirodni teren: šuma, travnjak, polja, pijesak, kamenjar, močvara
+  m.addLayer({
+    id: 'gta-landcover',
+    type: 'fill',
+    source: src,
+    'source-layer': 'landcover',
+    paint: { 'fill-color': landcoverColor(T()) },
+  });
+
   // Parkovi
   m.addLayer({
     id: 'gta-park',
     type: 'fill',
     source: src,
     'source-layer': 'park',
-    paint: { 'fill-color': T().green },
+    paint: { 'fill-color': T().terrain.grass },
   });
 
-  // Šume i travnjaci
+  // Aerodrom (površine)
   m.addLayer({
-    id: 'gta-landcover',
+    id: 'gta-aeroway-area',
     type: 'fill',
     source: src,
-    'source-layer': 'landcover',
-    filter: ['in', ['get', 'class'], ['literal', ['wood', 'grass']]],
-    paint: { 'fill-color': T().green, 'fill-opacity': 0.8 },
+    'source-layer': 'aeroway',
+    filter: ['==', ['geometry-type'], 'Polygon'],
+    paint: { 'fill-color': aerowayColor(T()) },
+  });
+
+  // Piste i staze za vožnju aviona
+  m.addLayer({
+    id: 'gta-aeroway-line',
+    type: 'line',
+    source: src,
+    'source-layer': 'aeroway',
+    filter: ['==', ['geometry-type'], 'LineString'],
+    paint: {
+      'line-color': aerowayColor(T()),
+      'line-width': [
+        'interpolate',
+        ['linear'],
+        ['zoom'],
+        10,
+        ['match', ['get', 'class'], 'runway', 2, 0.5],
+        16,
+        ['match', ['get', 'class'], 'runway', 40, 10],
+      ],
+    },
   });
 
   // Rijeke i potoci
@@ -345,6 +554,25 @@ function addGtaLayers(m: MlMap) {
     'source-layer': 'building',
     minzoom: 13,
     paint: { 'fill-color': T().building, 'fill-antialias': true },
+  });
+
+  // Pruge
+  m.addLayer({
+    id: 'gta-rail',
+    type: 'line',
+    source: src,
+    'source-layer': 'transportation',
+    minzoom: 11,
+    filter: [
+      'all',
+      ['==', ['geometry-type'], 'LineString'],
+      ['in', ['get', 'class'], ['literal', ['rail', 'transit']]],
+    ],
+    paint: {
+      'line-color': T().terrain.rail,
+      'line-width': ['interpolate', ['linear'], ['zoom'], 11, 1, 16, 3],
+      'line-dasharray': [3, 2],
+    },
   });
 
   // Ceste - debljina i boja ovise o vrsti ceste
@@ -442,8 +670,24 @@ async function tileUrlTemplate(): Promise<string> {
   return tileJson.tiles[0];
 }
 
-// Skini sve pločice za područje i izvuci iz njih bolnice, policiju, benzinske...
-async function loadPois(b: BBox): Promise<FeatureCollection<Point>> {
+// Klase terena koje izvlačimo iz detaljnih pločica (da se vide na svim zumovima)
+const TERRAIN_CLASSES: Record<string, string[] | null> = {
+  landcover: ['wood', 'grass', 'farmland', 'sand', 'rock', 'wetland', 'ice'],
+  landuse: [
+    'residential', 'suburb', 'neighbourhood', 'quarter',
+    'industrial', 'railway', 'garages', 'quarry', 'depot',
+    'commercial', 'retail', 'cemetery',
+    'hospital', 'school', 'university', 'college', 'kindergarten', 'library',
+    'stadium', 'pitch', 'playground', 'track', 'theme_park', 'zoo', 'military',
+  ],
+  park: null, // svi parkovi
+};
+
+type TileData = { pois: FeatureCollection<Point>; terrain: FeatureCollection };
+
+// Skini sve detaljne pločice za područje i izvuci iz njih
+// bolnice, policiju, benzinske... i sav teren (plaže, igrališta, groblja...)
+async function loadTileData(b: BBox): Promise<TileData> {
   const template = await tileUrlTemplate();
   const z = POI_ZOOM;
 
@@ -458,6 +702,7 @@ async function loadPois(b: BBox): Promise<FeatureCollection<Point>> {
 
   const seen = new Set<string>();
   const features: Feature<Point>[] = [];
+  const terrain: Feature[] = [];
 
   async function worker() {
     while (jobs.length) {
@@ -489,17 +734,74 @@ async function loadPois(b: BBox): Promise<FeatureCollection<Point>> {
               geometry: { type: 'Point', coordinates: [lon, lat] },
             });
           }
+
+          // Teren
+          for (const [layerName, allowed] of Object.entries(TERRAIN_CLASSES)) {
+            const tl = tile.layers[layerName];
+            for (let i = 0; tl && i < tl.length; i++) {
+              const f = tl.feature(i);
+              if (f.type !== 3) continue; // samo površine
+              const cls = String(f.properties.class ?? '');
+              if (allowed && !allowed.includes(cls)) continue;
+              terrain.push({
+                type: 'Feature',
+                properties: { src: layerName, class: cls },
+                geometry: f.toGeoJSON(x, y, z).geometry,
+              });
+            }
+          }
         }
       } catch {
         // jedna neuspjela pločica ne smije srušiti sve
       }
       done++;
-      setStatus(`Tražim bolnice, policiju, benzinske... ${done}/${total}`);
+      setStatus(`Učitavam teren i mjesta... ${Math.round((done / total) * 100)}%`);
     }
   }
 
   await Promise.all(Array.from({ length: PARALLEL_DOWNLOADS }, worker));
-  return { type: 'FeatureCollection', features };
+  return {
+    pois: { type: 'FeatureCollection', features },
+    terrain: { type: 'FeatureCollection', features: terrain },
+  };
+}
+
+// Zamijeni teren iz pločica detaljnim terenom (vidljiv na svim zumovima)
+function addDetailedTerrain(m: MlMap, terrain: FeatureCollection) {
+  m.addSource('gta-terrain', { type: 'geojson', data: terrain, tolerance: 0.2 });
+  const before = 'gta-aeroway-area';
+  m.addLayer(
+      {
+        id: 'gta-t-landuse',
+        type: 'fill',
+        source: 'gta-terrain',
+        filter: ['==', ['get', 'src'], 'landuse'],
+        paint: { 'fill-color': landuseColor(T()), 'fill-antialias': false },
+      },
+      before,
+  );
+  m.addLayer(
+      {
+        id: 'gta-t-landcover',
+        type: 'fill',
+        source: 'gta-terrain',
+        filter: ['==', ['get', 'src'], 'landcover'],
+        paint: { 'fill-color': landcoverColor(T()), 'fill-antialias': false },
+      },
+      before,
+  );
+  m.addLayer(
+      {
+        id: 'gta-t-park',
+        type: 'fill',
+        source: 'gta-terrain',
+        filter: ['==', ['get', 'src'], 'park'],
+        paint: { 'fill-color': T().terrain.grass, 'fill-antialias': false },
+      },
+      before,
+  );
+  // Stari (pojednostavljeni) slojevi više ne trebaju
+  for (const id of ['gta-landuse', 'gta-landcover', 'gta-park']) m.setLayoutProperty(id, 'visibility', 'none');
 }
 
 // ---------- Ikonice ----------
@@ -613,8 +915,15 @@ function applyTheme(m: MlMap) {
   const set = (layer: string, prop: string, value: unknown) => {
     if (m.getLayer(layer)) m.setPaintProperty(layer, prop, value);
   };
-  set('gta-park', 'fill-color', t.green);
-  set('gta-landcover', 'fill-color', t.green);
+  set('gta-landuse', 'fill-color', landuseColor(t));
+  set('gta-landcover', 'fill-color', landcoverColor(t));
+  set('gta-park', 'fill-color', t.terrain.grass);
+  set('gta-aeroway-area', 'fill-color', aerowayColor(t));
+  set('gta-aeroway-line', 'line-color', aerowayColor(t));
+  set('gta-rail', 'line-color', t.terrain.rail);
+  set('gta-t-landuse', 'fill-color', landuseColor(t));
+  set('gta-t-landcover', 'fill-color', landcoverColor(t));
+  set('gta-t-park', 'fill-color', t.terrain.grass);
   set('gta-waterways', 'line-color', t.water);
   set('gta-building-shadow', 'fill-opacity', t.shadow);
   set('gta-buildings', 'fill-color', t.building);
@@ -650,6 +959,7 @@ function setTheme(id: string) {
     // nije bitno
   }
   applyThemeToUi();
+  renderTerrainLegend();
   if (gtaMap) applyTheme(gtaMap);
   if (radar) applyTheme(radar);
 }
@@ -665,6 +975,12 @@ themesEl.addEventListener('click', (e) => {
 });
 applyThemeToUi();
 renderLegend();
+renderTerrainLegend();
+
+// Sklapanje panela s legendom
+document.querySelector('#legend-toggle')!.addEventListener('click', () => {
+  document.querySelector('#legend-panel')!.classList.toggle('collapsed');
+});
 
 // Zlatni okvir oko GTA područja
 function addBorder(m: MlMap, b: BBox) {
@@ -811,7 +1127,9 @@ btnGenerate.addEventListener('click', async () => {
     document.body.classList.add('gta-mode');
 
     // Blipovi
-    const [pois, icons] = await Promise.all([loadPois(b), loadIcons()]);
+    const [{ pois, terrain }, icons] = await Promise.all([loadTileData(b), loadIcons()]);
+    addDetailedTerrain(gm, terrain);
+    addDetailedTerrain(rm, terrain);
     addPoiLayers(gm, pois, icons);
     addPoiLayers(rm, pois, icons);
     gm.moveLayer('gta-border');
@@ -821,8 +1139,8 @@ btnGenerate.addEventListener('click', async () => {
     el.className = 'player-marker';
     player = new maplibregl.Marker({ element: el }).setLngLat(bboxCenter(b)).addTo(gm);
 
-    setStatus(`Pronađeno ${pois.features.length} mjesta. Klikni na mapu da pomakneš igrača, klik na ikonu pokazuje ime.`);
-    legendEl.hidden = false;
+    setStatus(`${pois.features.length} mjesta · klik pomiče igrača`);
+    document.querySelector<HTMLElement>('#legend-panel')!.hidden = false;
     btnDraw.hidden = true;
     btnGenerate.hidden = true;
     btnReset.hidden = false;

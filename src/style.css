@@ -1,6 +1,6 @@
 :root {
   --gold: #e0b84f;
-  --bar-bg: rgba(0, 0, 0, 0.72);
+  --bar-bg: rgba(12, 12, 14, 0.9);
   --font: 'Oswald', 'Arial Narrow', sans-serif;
 }
 
@@ -115,20 +115,19 @@ body {
 }
 
 .legend {
-  margin: 10px 0 0;
+  margin: 0;
   padding: 0;
   list-style: none;
   display: grid;
-  gap: 3px;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 10px;
 }
 
 .legend li {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 6px 12px;
-  background: var(--bar-bg);
-  font-size: 14px;
+  gap: 8px;
+  font-size: 13px;
   text-transform: uppercase;
   letter-spacing: 1px;
 }
@@ -136,6 +135,34 @@ body {
 .legend img {
   display: block;
 }
+
+/* Legenda terena: dva stupca s kvadratićima boje */
+.terrain-legend {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px 10px;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: #ddd;
+}
+
+.terrain-legend li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.swatch {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
 
 /* ---------- Odabir stila ---------- */
 
@@ -333,4 +360,72 @@ body.gta-mode::after {
 .maplibregl-popup-tip {
   border-top-color: rgba(0, 0, 0, 0.85) !important;
   border-bottom-color: rgba(0, 0, 0, 0.85) !important;
+}
+
+/* ---------- Panel s legendom (desno dolje) ---------- */
+
+#legend-panel {
+  position: absolute;
+  right: 16px;
+  bottom: 40px;
+  z-index: 3;
+  width: 310px;
+  color: #fff;
+  background: var(--bar-bg);
+  backdrop-filter: blur(4px);
+  border-top: 3px solid var(--gold);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
+}
+
+.legend-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 8px 14px;
+  border: none;
+  background: transparent;
+  color: #fff;
+  font-family: var(--font);
+  font-size: 16px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.legend-header:hover {
+  color: var(--gold);
+}
+
+.chevron {
+  transition: transform 0.2s;
+}
+
+.legend-body {
+  padding: 0 14px 12px;
+}
+
+.legend-body .section-title {
+  margin: 8px 0 6px;
+}
+
+#legend-panel.collapsed .legend-body {
+  display: none;
+}
+
+#legend-panel.collapsed .chevron {
+  transform: rotate(180deg);
+}
+
+/* Malo zaobljenja i sjene da izbornik izgleda urednije */
+.menu,
+.themes,
+.status {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+}
+
+.menu-item,
+.theme-btn,
+.status {
+  backdrop-filter: blur(4px);
 }
