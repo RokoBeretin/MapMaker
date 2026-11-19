@@ -1,0 +1,336 @@
+:root {
+  --gold: #e0b84f;
+  --bar-bg: rgba(0, 0, 0, 0.72);
+  --font: 'Oswald', 'Arial Narrow', sans-serif;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: #1b1f22;
+  font-family: var(--font);
+}
+
+[hidden] {
+  display: none !important;
+}
+
+/* ---------- Karte ---------- */
+
+#map,
+#gta-map {
+  position: absolute;
+  inset: 0;
+}
+
+/* GTA sloj je samo za prikaz; klikove prima obična karta ispod */
+#gta-map {
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* ---------- Izbornik (stil izbornika iz igre) ---------- */
+
+#panel {
+  position: absolute;
+  top: 28px;
+  left: 28px;
+  width: 290px;
+  z-index: 3;
+  color: #fff;
+}
+
+.brand {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 14px;
+  line-height: 0.9;
+  text-transform: uppercase;
+  font-weight: 700;
+  font-style: italic;
+  transform: skewX(-6deg);
+  text-shadow:
+          3px 3px 0 #000,
+          -1px -1px 0 #000,
+          1px -1px 0 #000,
+          -1px 1px 0 #000;
+}
+
+.brand-top {
+  font-size: 22px;
+  letter-spacing: 6px;
+  color: var(--gold);
+}
+
+.brand-bottom {
+  font-size: 52px;
+  letter-spacing: 2px;
+}
+
+.menu {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.menu-item {
+  position: relative;
+  padding: 10px 16px;
+  border: none;
+  background: var(--bar-bg);
+  color: #fff;
+  font-family: var(--font);
+  font-size: 17px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-align: left;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+          background 0.12s,
+          color 0.12s;
+}
+
+.menu-item:hover:not(:disabled),
+.menu-item.active {
+  background: #fff;
+  color: #000;
+}
+
+.menu-item:disabled {
+  color: rgba(255, 255, 255, 0.3);
+  cursor: not-allowed;
+}
+
+.status {
+  margin-top: 10px;
+  padding: 8px 12px;
+  background: var(--bar-bg);
+  border-left: 4px solid var(--gold);
+  font-size: 14px;
+  letter-spacing: 0.3px;
+  color: #ddd;
+}
+
+.legend {
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 3px;
+}
+
+.legend li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 12px;
+  background: var(--bar-bg);
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.legend img {
+  display: block;
+}
+
+/* ---------- Odabir stila ---------- */
+
+.section-title {
+  margin: 14px 0 4px;
+  font-size: 13px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--gold);
+  text-shadow: 1px 1px 0 #000;
+}
+
+.themes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3px;
+}
+
+.theme-btn {
+  padding: 7px 8px;
+  border: none;
+  border-bottom: 3px solid transparent;
+  background: var(--bar-bg);
+  color: #fff;
+  font-family: var(--font);
+  font-size: 14px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.theme-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.theme-btn.active {
+  border-bottom-color: var(--gold);
+  background: rgba(0, 0, 0, 0.9);
+  color: var(--gold);
+}
+
+/* Naslov se mijenja sa stilom */
+body[data-theme='neon'] .brand-bottom {
+  color: #ff4f9e;
+  text-shadow:
+          3px 3px 0 #1fd1e0,
+          0 0 18px rgba(255, 79, 158, 0.7);
+  font-style: italic;
+}
+
+body[data-theme='pustinja'] .brand-bottom {
+  color: #f2e2b8;
+}
+
+body[data-theme='tropik'] .brand-bottom {
+  background: linear-gradient(90deg, #ff4fa3, #ff8a3d);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: none;
+  filter: drop-shadow(3px 3px 0 #000);
+}
+
+.blip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: Arial, sans-serif;
+}
+
+/* ---------- Minimapa ---------- */
+
+#hud {
+  position: absolute;
+  left: 28px;
+  bottom: 28px;
+  z-index: 3;
+  width: 230px;
+}
+
+.radar-frame {
+  position: relative;
+  width: 230px;
+  height: 230px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 5px solid rgba(0, 0, 0, 0.85);
+  outline: 2px solid var(--gold);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.6);
+  box-sizing: border-box;
+}
+
+#radar {
+  position: absolute;
+  inset: 0;
+}
+
+/* Strelica "igrača" u sredini minimape */
+.radar-player,
+.player-marker {
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-bottom: 20px solid #fff;
+  filter: drop-shadow(0 0 2px #000) drop-shadow(0 0 1px #000);
+}
+
+.radar-player {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+}
+
+.bars {
+  display: flex;
+  gap: 4px;
+  margin-top: 6px;
+  padding: 0 24px;
+}
+
+.bar {
+  flex: 1;
+  height: 7px;
+  background: rgba(0, 0, 0, 0.75);
+  border: 1px solid rgba(0, 0, 0, 0.9);
+}
+
+.bar span {
+  display: block;
+  height: 100%;
+}
+
+.bar.health span {
+  width: 85%;
+  background: #4caf50;
+}
+
+.bar.armor span {
+  width: 60%;
+  background: #3a8fd9;
+}
+
+/* ---------- GTA način (nakon "Generiraj mapu") ---------- */
+
+/* Zatamnjeni rubovi ekrana */
+body.gta-mode::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 55%, rgba(0, 0, 0, 0.55) 100%);
+}
+
+/* Tamne kontrole karte */
+.maplibregl-ctrl-group {
+  background: var(--bar-bg) !important;
+  border-radius: 0 !important;
+}
+.maplibregl-ctrl-group button + button {
+  border-top-color: #333 !important;
+}
+.maplibregl-ctrl-icon {
+  filter: invert(1);
+}
+.maplibregl-ctrl-attrib {
+  background: rgba(0, 0, 0, 0.6) !important;
+  color: #aaa;
+}
+.maplibregl-ctrl-attrib a {
+  color: #ccc !important;
+}
+
+/* Natpis s imenom mjesta */
+.maplibregl-popup-content {
+  background: rgba(0, 0, 0, 0.85);
+  color: #fff;
+  font-family: var(--font);
+  font-weight: 500;
+  font-size: 15px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 6px 12px;
+  border-radius: 0;
+}
+.maplibregl-popup-tip {
+  border-top-color: rgba(0, 0, 0, 0.85) !important;
+  border-bottom-color: rgba(0, 0, 0, 0.85) !important;
+}

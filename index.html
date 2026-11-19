@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="hr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Map Creator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+          href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;700&display=swap"
+          rel="stylesheet"
+  />
+</head>
+<body>
+<!-- Obična karta (cijela Hrvatska) -->
+<div id="map"></div>
+
+<!-- GTA mapa: isti prikaz, ali izrezana samo na označeno područje -->
+<div id="gta-map" hidden></div>
+
+<!-- Izbornik -->
+<aside id="panel">
+  <header class="brand">
+    <span class="brand-top">Map</span>
+    <span class="brand-bottom">Creator</span>
+  </header>
+
+  <nav class="menu">
+    <button id="btn-draw" class="menu-item">Označi područje</button>
+    <button id="btn-generate" class="menu-item" disabled>Generiraj mapu</button>
+    <button id="btn-reset" class="menu-item" hidden>Nova mapa</button>
+  </nav>
+
+  <div class="section-title">Stil mape</div>
+  <div id="themes" class="themes"></div>
+
+  <div id="status" class="status">Uvećaj kartu do mjesta koje želiš, pa označi područje.</div>
+
+  <ul id="legend" class="legend" hidden></ul>
+</aside>
+
+<!-- Minimapa (radar) kao u igri -->
+<div id="hud" hidden>
+  <div class="radar-frame">
+    <div id="radar"></div>
+    <div class="radar-player"></div>
+  </div>
+  <div class="bars">
+    <div class="bar health"><span></span></div>
+    <div class="bar armor"><span></span></div>
+  </div>
+</div>
+
+<script type="module" src="/src/main.ts"></script>
+</body>
+</html>
